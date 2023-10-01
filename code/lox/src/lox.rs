@@ -3,7 +3,6 @@ use std::io;
 use std::io::Write;
 use std::process;
 
-#[allow(dead_code)]
 pub struct Lox {
     had_error: bool,
 }

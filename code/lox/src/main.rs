@@ -1,4 +1,5 @@
 mod lox;
+mod token;
 use lox::Lox;
 use std::env;
 
