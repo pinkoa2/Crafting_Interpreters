@@ -54,20 +54,27 @@ pub enum Token_Type {
 
 #[allow(dead_code)]
 impl Token_Type {
-    pub fn identify_token(token: String) -> Token_Type {
+    pub fn identify_token(token: &String) -> Option<Token_Type> {
         match token.trim() {
-            "(" => Token_Type::LEFT_PAREN,
-            ")" => Token_Type::RIGHT_PAREN,
-            "{" => Token_Type::LEFT_BRACE,
-            "}" => Token_Type::RIGHT_BRACE,
-            "," => Token_Type::COMMA,
-            "." => Token_Type::DOT,
-            "-" => Token_Type::MINUS,
-            "+" => Token_Type::PLUS,
-            ";" => Token_Type::SEMICOLON,
-            "*" => Token_Type::STAR,
+            "(" => Some(Token_Type::LEFT_PAREN),
+            ")" => Some(Token_Type::RIGHT_PAREN),
+            "{" => Some(Token_Type::LEFT_BRACE),
+            "}" => Some(Token_Type::RIGHT_BRACE),
+            "," => Some(Token_Type::COMMA),
+            "." => Some(Token_Type::DOT),
+            "-" => Some(Token_Type::MINUS),
+            "+" => Some(Token_Type::PLUS),
+            ";" => Some(Token_Type::SEMICOLON),
+            "*" => Some(Token_Type::STAR),
+            "!" => Some(Token_Type::BANG),
+            "!=" => Some(Token_Type::BANG_EQUAL),
+            "=" => Some(Token_Type::EQUAL),
+            ">" => Some(Token_Type::GREATER),
+            ">=" => Some(Token_Type::GREATER_EQUAL),
+            "<" => Some(Token_Type::LESS),
+            "<=" => Some(Token_Type::LESS_EQUAL),
             // TODO: add the remaining
-            _ => panic!("Unidentified token given"),
+            _ => None,
         }
     }
 }
@@ -87,8 +94,15 @@ impl fmt::Display for Token_Type {
             Token_Type::SEMICOLON => write!(f, ";"),
             Token_Type::SLASH => write!(f, "/"),
             Token_Type::STAR => write!(f, "*"),
-            // One or two character tokens
             Token_Type::BANG => write!(f, "!"),
+            Token_Type::BANG_EQUAL => write!(f, "!="),
+            Token_Type::EQUAL => write!(f, "="),
+            Token_Type::EQUAL_EQUAL => write!(f, "=="),
+            Token_Type::GREATER => write!(f, ">"),
+            Token_Type::GREATER_EQUAL => write!(f, ">="),
+            Token_Type::LESS => write!(f, "<"),
+            Token_Type::LESS_EQUAL => write!(f, "<="),
+            // TODO: add the remaining
             _ => write!(f, "UNKNOWN"),
         }
     }

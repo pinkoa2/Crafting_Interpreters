@@ -1,5 +1,6 @@
 mod lox;
 mod token;
+mod scanner;
 use lox::Lox;
 use std::env;
 

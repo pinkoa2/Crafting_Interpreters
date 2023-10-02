@@ -1,16 +1,16 @@
 use super::token_type::Token_Type;
 
 #[allow(dead_code)]
-struct Token {
+pub struct Token {
     token_type: Token_Type,
     lexem: String,
     literal: String, // This might need to be an object
-    lint: i32,
+    lint: usize,
 }
 
 #[allow(dead_code)]
 impl Token {
-    pub fn new(token_type: Token_Type, lexem: String, literal: String, lint: i32) -> Token {
+    pub fn new(token_type: Token_Type, lexem: String, literal: String, lint: usize) -> Token {
         Token {
             token_type,
             lexem,
