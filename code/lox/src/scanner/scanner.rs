@@ -28,69 +28,72 @@ impl Scanner {
                 None => continue,
             }
         }
-        tokens.push(Token::new(
-            // TODO: inaccurate
-            Token_Type::EOF,
-            "".to_string(),
-            "".to_string(),
-            0,
-        ));
+        tokens.push(self.generate_token(Token_Type::EOF, None));
         tokens
     }
 
     fn scan_token(&mut self) -> Option<Token> {
         let current_char: char = self.advance();
         match current_char {
-            // Single Use Characters can refactor nicely
-            '(' => Some(self.generate_token(Token_Type::LEFT_PAREN, None, None, self.line)),
-            ')' => Some(self.generate_token(Token_Type::RIGHT_PAREN, None, None, self.line)),
-            '{' => Some(self.generate_token(Token_Type::LEFT_BRACE, None, None, self.line)),
-            '}' => Some(self.generate_token(Token_Type::RIGHT_BRACE, None, None, self.line)),
-            ',' => Some(self.generate_token(Token_Type::COMMA, None, None, self.line)),
-            '.' => Some(self.generate_token(Token_Type::DOT, None, None, self.line)),
-            '-' => Some(self.generate_token(Token_Type::MINUS, None, None, self.line)),
-            '+' => Some(self.generate_token(Token_Type::PLUS, None, None, self.line)),
-            ';' => Some(self.generate_token(Token_Type::SEMICOLON, None, None, self.line)),
-            '/' => Some(self.generate_token(Token_Type::SLASH, None, None, self.line)),
-            '*' => Some(self.generate_token(Token_Type::SLASH, None, None, self.line)),
-            // Double char examples: can refactor
+            // Single use char
+            '(' => Some(self.generate_token(Token_Type::LEFT_PAREN, None)),
+            ')' => Some(self.generate_token(Token_Type::RIGHT_PAREN, None)),
+            '{' => Some(self.generate_token(Token_Type::LEFT_BRACE, None)),
+            '}' => Some(self.generate_token(Token_Type::RIGHT_BRACE, None)),
+            ',' => Some(self.generate_token(Token_Type::COMMA, None)),
+            '.' => Some(self.generate_token(Token_Type::DOT, None)),
+            '-' => Some(self.generate_token(Token_Type::MINUS, None)),
+            '+' => Some(self.generate_token(Token_Type::PLUS, None)),
+            ';' => Some(self.generate_token(Token_Type::SEMICOLON, None)),
+            '*' => Some(self.generate_token(Token_Type::STAR, None)),
+            // Double char
             '!' => match self.match_next(&'=') {
-                true => Some(self.generate_token(Token_Type::BANG_EQUAL, None, None, self.line)),
-                false => Some(self.generate_token(Token_Type::BANG, None, None, self.line)),
+                true => Some(self.generate_token(Token_Type::BANG_EQUAL, None)),
+                false => Some(self.generate_token(Token_Type::BANG, None)),
             },
             '=' => match self.match_next(&'=') {
-                true => Some(self.generate_token(Token_Type::EQUAL_EQUAL, None, None, self.line)),
-                false => Some(self.generate_token(Token_Type::EQUAL, None, None, self.line)),
+                true => Some(self.generate_token(Token_Type::EQUAL_EQUAL, None)),
+                false => Some(self.generate_token(Token_Type::EQUAL, None)),
             },
             '<' => match self.match_next(&'=') {
-                true => Some(self.generate_token(Token_Type::LESS_EQUAL, None, None, self.line)),
-                false => Some(self.generate_token(Token_Type::LESS, None, None, self.line)),
+                true => Some(self.generate_token(Token_Type::LESS_EQUAL, None)),
+                false => Some(self.generate_token(Token_Type::LESS, None)),
             },
             '>' => match self.match_next(&'=') {
-                true => Some(self.generate_token(Token_Type::GREATER_EQUAL, None, None, self.line)),
-                false => Some(self.generate_token(Token_Type::GREATER, None, None, self.line)),
+                true => Some(self.generate_token(Token_Type::GREATER_EQUAL, None)),
+                false => Some(self.generate_token(Token_Type::GREATER, None)),
             },
-            '@' => None,
+            // Comments ( like this :) )
+            '/' => {
+                if self.match_next(&'/') {
+                    while self.peek_next() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                    return None;
+                }
+                Some(self.generate_token(Token_Type::SLASH, None))
+            }
+            // Ignore Whitespace
+            ' ' => None,
+            '\r' => None,
+            '\t' => None,
+            // Newline
+            '\n' => {
+                self.line += 1;
+                None
+            }
             _ => panic!("TODO"),
         }
     }
 
-    fn generate_token(
-        &mut self,
-        token_type: Token_Type,
-        lexem: Option<String>,
-        literal: Option<String>,
-        line: usize,
-    ) -> Token {
-        let lexem_ = match lexem {
-            Some(lexem) => lexem,
-            None => "".to_string(),
-        };
+    fn generate_token(&mut self, token_type: Token_Type, literal: Option<String>) -> Token {
         let literal_ = match literal {
             Some(lexem) => lexem,
             None => "".to_string(),
         };
-        Token::new(token_type, lexem_, literal_, line)
+
+        let lexem: String = self.source[self.start..self.current].iter().collect();
+        Token::new(token_type, lexem, literal_, self.line)
     }
 
     // We grab the char at the current index and increment the current
@@ -117,7 +120,17 @@ impl Scanner {
         true
     }
 
+    fn peek_next(&mut self) -> char {
+        self.source.get(self.current).unwrap_or(&'\0').clone()
+    }
+
+    fn string(&mut self) -> Token {}
+
     fn is_at_end(&mut self) -> bool {
         self.current >= self.source.len()
     }
 }
+
+/*
+Some rando tests
+*/

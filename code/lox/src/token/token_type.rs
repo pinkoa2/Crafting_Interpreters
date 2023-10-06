@@ -50,7 +50,6 @@ pub enum Token_Type {
     WHILE,
 
     EOF,
-    UNKNOWN,
 }
 
 #[allow(dead_code)]
