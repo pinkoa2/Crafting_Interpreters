@@ -50,29 +50,27 @@ pub enum Token_Type {
     WHILE,
 
     EOF,
+    UNKNOWN,
 }
 
 #[allow(dead_code)]
 impl Token_Type {
-    pub fn identify_token(token: &String) -> Option<Token_Type> {
-        match token.trim() {
-            "(" => Some(Token_Type::LEFT_PAREN),
-            ")" => Some(Token_Type::RIGHT_PAREN),
-            "{" => Some(Token_Type::LEFT_BRACE),
-            "}" => Some(Token_Type::RIGHT_BRACE),
-            "," => Some(Token_Type::COMMA),
-            "." => Some(Token_Type::DOT),
-            "-" => Some(Token_Type::MINUS),
-            "+" => Some(Token_Type::PLUS),
-            ";" => Some(Token_Type::SEMICOLON),
-            "*" => Some(Token_Type::STAR),
-            "!" => Some(Token_Type::BANG),
-            "!=" => Some(Token_Type::BANG_EQUAL),
-            "=" => Some(Token_Type::EQUAL),
-            ">" => Some(Token_Type::GREATER),
-            ">=" => Some(Token_Type::GREATER_EQUAL),
-            "<" => Some(Token_Type::LESS),
-            "<=" => Some(Token_Type::LESS_EQUAL),
+    pub fn identify_token(token: &char) -> Option<Token_Type> {
+        match token {
+            '(' => Some(Token_Type::LEFT_PAREN),
+            ')' => Some(Token_Type::RIGHT_PAREN),
+            '{' => Some(Token_Type::LEFT_BRACE),
+            '}' => Some(Token_Type::RIGHT_BRACE),
+            ',' => Some(Token_Type::COMMA),
+            '.' => Some(Token_Type::DOT),
+            '-' => Some(Token_Type::MINUS),
+            '+' => Some(Token_Type::PLUS),
+            ';' => Some(Token_Type::SEMICOLON),
+            '*' => Some(Token_Type::STAR),
+            '!' => Some(Token_Type::BANG),
+            '=' => Some(Token_Type::EQUAL),
+            '>' => Some(Token_Type::GREATER),
+            '<' => Some(Token_Type::LESS),
             // TODO: add the remaining
             _ => None,
         }
