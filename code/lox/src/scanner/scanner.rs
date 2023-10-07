@@ -1,3 +1,5 @@
+use crate::lox::Lox;
+
 use super::super::token::token::Token;
 use super::super::token::token_type::Token_Type;
 
@@ -6,6 +8,7 @@ struct Scanner {
     start: usize,
     current: usize,
     line: usize,
+    an_error_occured: bool,
 }
 
 #[allow(dead_code)]
@@ -16,10 +19,11 @@ impl Scanner {
             start: 0,
             current: 0,
             line: 1,
+            an_error_occured: false,
         }
     }
 
-    fn scan_tokens(&mut self) -> Vec<Token> {
+    fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
         let mut tokens: Vec<Token> = Vec::new();
         while self.is_at_end() {
             self.start = self.current;
@@ -29,7 +33,10 @@ impl Scanner {
             }
         }
         tokens.push(self.generate_token(Token_Type::EOF, None));
-        tokens
+        if self.an_error_occured {
+            return Err("Some error occured while parsing".to_string());
+        }
+        Ok(tokens)
     }
 
     fn scan_token(&mut self) -> Option<Token> {
@@ -94,7 +101,8 @@ impl Scanner {
                 if misc.is_alphabetic() || misc == '_' {
                     return Some(self.identifier());
                 }
-                panic!("Unknown")
+                self.scanner_error(format!("Unknown char {} unable to be scanned", misc).trim());
+                None
             }
         }
     }
@@ -111,10 +119,7 @@ impl Scanner {
 
     // We grab the char at the current index and increment the current
     fn advance(&mut self) -> char {
-        let current_char: char = match self.source.get(self.current) {
-            Some(c) => c.clone(),
-            None => panic!("Error in advance, must have a miss index"),
-        };
+        let current_char: char = self.source.get(self.current).unwrap().clone();
         self.current += 1;
         current_char
     }
@@ -150,7 +155,7 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            panic!("An error occured here")
+            self.scanner_error("Missing closing \" on string token")
         }
 
         self.advance(); // last " is needed
@@ -201,11 +206,15 @@ impl Scanner {
             "while" => Token_Type::WHILE,
             _ => Token_Type::IDENTIFIER,
         };
-
         return self.generate_token(token_type, None);
     }
 
     fn is_at_end(&mut self) -> bool {
         self.current >= self.source.len()
+    }
+
+    fn scanner_error(&mut self, message: &str) {
+        Lox::error(self.line, message.to_string());
+        self.an_error_occured = true;
     }
 }
