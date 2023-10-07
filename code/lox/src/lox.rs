@@ -3,22 +3,20 @@ use std::io;
 use std::io::Write;
 use std::process;
 
-pub struct Lox {
-    had_error: bool,
-}
+pub struct Lox {}
 
 #[allow(dead_code)]
 impl Lox {
     pub fn new() -> Lox {
-        return Lox { had_error: false };
+        return Lox {};
     }
 
     pub fn run_file(&mut self, file_name: String) {
         let file_contents = fs::read_to_string(file_name.clone())
             .expect(&format!("Unable to read file {}", file_name));
-        self.run(&file_contents);
-        if self.had_error {
-            process::exit(65);
+        match self.run(&file_contents) {
+            Ok(_) => {}
+            Err(_) => process::exit(65),
         }
     }
 
@@ -35,7 +33,7 @@ impl Lox {
                     if n == 0 {
                         process::exit(1);
                     }
-                    self.run(&input);
+                    self.run(&input).ok(); // We do not care about errors
                     input.clear();
                 }
                 Err(e) => {
@@ -43,20 +41,19 @@ impl Lox {
                     process::exit(1);
                 }
             };
-            self.had_error = false;
         }
     }
 
-    fn run(&mut self, input: &String) {
+    fn run(&mut self, input: &String) -> Result<String, String> {
         println!("{}", input.trim());
+        Ok("Not yet connected".to_string())
     }
 
-    fn error(&mut self, line: i32, message: String) {
-        self.report(line, String::from(""), message);
+    pub fn error(line: usize, message: String) {
+        Lox::report(line, String::from(""), message);
     }
 
-    fn report(&mut self, line: i32, context: String, message: String) {
+    fn report(line: usize, context: String, message: String) {
         println!("[line {}] Error {} {}", line, context, message);
-        self.had_error = true;
     }
 }
