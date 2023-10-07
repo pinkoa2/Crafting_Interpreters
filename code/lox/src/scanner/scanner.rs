@@ -23,9 +23,9 @@ impl Scanner {
         }
     }
 
-    fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
         let mut tokens: Vec<Token> = Vec::new();
-        while self.is_at_end() {
+        while !self.is_at_end() {
             self.start = self.current;
             match self.scan_token() {
                 Some(token) => tokens.push(token),
@@ -108,11 +108,14 @@ impl Scanner {
     }
 
     fn generate_token(&mut self, token_type: Token_Type, literal: Option<String>) -> Token {
+        if token_type == Token_Type::EOF {
+            return Token::new(token_type, "".to_string(), "".to_string(), self.line);
+        }
+
         let literal_ = match literal {
-            Some(lexem) => lexem,
+            Some(literal) => literal,
             None => "".to_string(),
         };
-
         let lexem: String = self.source[self.start..self.current].iter().collect();
         Token::new(token_type, lexem, literal_, self.line)
     }
@@ -216,5 +219,107 @@ impl Scanner {
     fn scanner_error(&mut self, message: &str) {
         Lox::error(self.line, message.to_string());
         self.an_error_occured = true;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Scanner;
+    use super::Token;
+
+    fn token_to_readable(token: &Token) -> String {
+        return token.test_string();
+    }
+
+    fn compare_token_with_expected(actual: &Vec<Token>, expected: &Vec<&str>) {
+        if actual.len() != expected.len() {
+            panic!("Expected and actual not the same length");
+        }
+        let mut index = 0;
+        while index < actual.len() {
+            assert_eq!(token_to_readable(&actual[index]), expected[index]);
+            index += 1;
+        }
+    }
+
+    #[test]
+    fn test_scanner_simple() {
+        let code = "(  ".to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec!["'(' '(' '' '1'", "'EOF' '' '' '1'"];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_single_char() {
+        let code = "
+            ( ) { } *
+            - + ,.
+            ;
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'(' '(' '' '2'",
+            "')' ')' '' '2'",
+            "'{' '{' '' '2'",
+            "'}' '}' '' '2'",
+            "'*' '*' '' '2'",
+            "'-' '-' '' '3'",
+            "'+' '+' '' '3'",
+            "',' ',' '' '3'",
+            "'.' '.' '' '3'",
+            "';' ';' '' '4'",
+            "'EOF' '' '' '5'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_double_char() {
+        let code = "
+            ( ! !=
+              == =
+              <= <
+              > >=
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'(' '(' '' '2'", 
+            "'!' '!' '' '2'", 
+            "'!=' '!=' '' '2'", 
+            "'==' '==' '' '3'", 
+            "'=' '=' '' '3'", 
+            "'<=' '<=' '' '4'", 
+            "'<' '<' '' '4'", 
+            "'>' '>' '' '5'",
+            "'>=' '>=' '' '5'", 
+            "'EOF' '' '' '6'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+
+    #[test]
+    fn test_scanner_comments() {
+        let code = "
+            ( / // All this should get ignored
+        // Also all of this
+        /
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'(' '(' '' '2'", 
+            "'/' '/' '' '2'", 
+            "'/' '/' '' '4'", 
+            "'EOF' '' '' '5'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
     }
 }

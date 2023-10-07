@@ -2,6 +2,7 @@ use core::fmt;
 
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
+#[derive(PartialEq, Eq)]
 pub enum Token_Type {
     // Single-character tokens.
     LEFT_PAREN,
@@ -52,30 +53,6 @@ pub enum Token_Type {
     EOF,
 }
 
-#[allow(dead_code)]
-impl Token_Type {
-    pub fn identify_token(token: &char) -> Option<Token_Type> {
-        match token {
-            '(' => Some(Token_Type::LEFT_PAREN),
-            ')' => Some(Token_Type::RIGHT_PAREN),
-            '{' => Some(Token_Type::LEFT_BRACE),
-            '}' => Some(Token_Type::RIGHT_BRACE),
-            ',' => Some(Token_Type::COMMA),
-            '.' => Some(Token_Type::DOT),
-            '-' => Some(Token_Type::MINUS),
-            '+' => Some(Token_Type::PLUS),
-            ';' => Some(Token_Type::SEMICOLON),
-            '*' => Some(Token_Type::STAR),
-            '!' => Some(Token_Type::BANG),
-            '=' => Some(Token_Type::EQUAL),
-            '>' => Some(Token_Type::GREATER),
-            '<' => Some(Token_Type::LESS),
-            // TODO: add the remaining
-            _ => None,
-        }
-    }
-}
-
 impl fmt::Display for Token_Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -99,6 +76,8 @@ impl fmt::Display for Token_Type {
             Token_Type::GREATER_EQUAL => write!(f, ">="),
             Token_Type::LESS => write!(f, "<"),
             Token_Type::LESS_EQUAL => write!(f, "<="),
+            Token_Type::STRING => write!(f, "STRING"),
+            Token_Type::EOF => write!(f, "EOF"),
             // TODO: add the remaining
             _ => write!(f, "UNKNOWN"),
         }
