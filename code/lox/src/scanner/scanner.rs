@@ -82,7 +82,20 @@ impl Scanner {
                 self.line += 1;
                 None
             }
-            _ => panic!("TODO"),
+            // Strings
+            '"' => Some(self.string()),
+            // Catch remainder
+            misc => {
+                // Numbers
+                if misc.is_digit(10) {
+                    return Some(self.number());
+                }
+                // Reserved Key Words
+                if misc.is_alphabetic() || misc == '_' {
+                    return Some(self.identifier());
+                }
+                panic!("Unknown")
+            }
         }
     }
 
@@ -124,13 +137,75 @@ impl Scanner {
         self.source.get(self.current).unwrap_or(&'\0').clone()
     }
 
-    fn string(&mut self) -> Token {}
+    fn peek_double_next(&mut self) -> char {
+        self.source.get(self.current + 1).unwrap_or(&'\0').clone()
+    }
+
+    fn string(&mut self) -> Token {
+        while self.peek_next() != '"' && !self.is_at_end() {
+            if self.peek_next() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            panic!("An error occured here")
+        }
+
+        self.advance(); // last " is needed
+
+        let literal: String = self.source[self.start + 1..self.current - 1]
+            .iter()
+            .collect();
+
+        return self.generate_token(Token_Type::STRING, Some(literal));
+    }
+
+    fn number(&mut self) -> Token {
+        while self.peek_next().is_digit(10) {
+            self.advance();
+        }
+        if self.peek_next() == '.' && self.peek_double_next().is_digit(10) {
+            while self.peek_next().is_digit(10) {
+                self.advance();
+            }
+        }
+        let literal: String = self.source[self.start..self.current].iter().collect();
+
+        return self.generate_token(Token_Type::NUMBER, Some(literal));
+    }
+
+    fn identifier(&mut self) -> Token {
+        while self.peek_next().is_alphabetic() || self.peek_next() == '_' {
+            self.advance();
+        }
+
+        let identifier: String = self.source[self.start..self.current].iter().collect();
+        let token_type: Token_Type = match identifier.trim() {
+            "and" => Token_Type::AND,
+            "class" => Token_Type::CLASS,
+            "else" => Token_Type::ELSE,
+            "false" => Token_Type::FALSE,
+            "fun" => Token_Type::FUN,
+            "for" => Token_Type::FOR,
+            "if" => Token_Type::IF,
+            "nil" => Token_Type::NIL,
+            "or" => Token_Type::OR,
+            "print" => Token_Type::PRINT,
+            "return" => Token_Type::RETURN,
+            "super" => Token_Type::SUPER,
+            "this" => Token_Type::THIS,
+            "true" => Token_Type::TRUE,
+            "var" => Token_Type::VAR,
+            "while" => Token_Type::WHILE,
+            _ => Token_Type::IDENTIFIER,
+        };
+
+        return self.generate_token(token_type, None);
+    }
 
     fn is_at_end(&mut self) -> bool {
         self.current >= self.source.len()
     }
 }
-
-/*
-Some rando tests
-*/
