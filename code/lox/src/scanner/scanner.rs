@@ -90,7 +90,7 @@ impl Scanner {
                 None
             }
             // Strings
-            '"' => Some(self.string()),
+            '"' => self.string(),
             // Catch remainder
             misc => {
                 // Numbers
@@ -149,7 +149,7 @@ impl Scanner {
         self.source.get(self.current + 1).unwrap_or(&'\0').clone()
     }
 
-    fn string(&mut self) -> Token {
+    fn string(&mut self) -> Option<Token> {
         while self.peek_next() != '"' && !self.is_at_end() {
             if self.peek_next() == '\n' {
                 self.line += 1;
@@ -158,7 +158,8 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            self.scanner_error("Missing closing \" on string token")
+            self.scanner_error("Missing closing \" on string token");
+            return None;
         }
 
         self.advance(); // last " is needed
@@ -167,7 +168,7 @@ impl Scanner {
             .iter()
             .collect();
 
-        return self.generate_token(Token_Type::STRING, Some(literal));
+        return Some(self.generate_token(Token_Type::STRING, Some(literal)));
     }
 
     fn number(&mut self) -> Token {
@@ -175,6 +176,7 @@ impl Scanner {
             self.advance();
         }
         if self.peek_next() == '.' && self.peek_double_next().is_digit(10) {
+            self.advance();
             while self.peek_next().is_digit(10) {
                 self.advance();
             }
@@ -288,21 +290,20 @@ mod tests {
         .to_string();
         let mut scanner = Scanner::new(&code);
         let expected = vec![
-            "'(' '(' '' '2'", 
-            "'!' '!' '' '2'", 
-            "'!=' '!=' '' '2'", 
-            "'==' '==' '' '3'", 
-            "'=' '=' '' '3'", 
-            "'<=' '<=' '' '4'", 
-            "'<' '<' '' '4'", 
+            "'(' '(' '' '2'",
+            "'!' '!' '' '2'",
+            "'!=' '!=' '' '2'",
+            "'==' '==' '' '3'",
+            "'=' '=' '' '3'",
+            "'<=' '<=' '' '4'",
+            "'<' '<' '' '4'",
             "'>' '>' '' '5'",
-            "'>=' '>=' '' '5'", 
+            "'>=' '>=' '' '5'",
             "'EOF' '' '' '6'",
         ];
         let actual = scanner.scan_tokens().ok().unwrap();
         compare_token_with_expected(&actual, &expected);
     }
-
 
     #[test]
     fn test_scanner_comments() {
@@ -314,10 +315,52 @@ mod tests {
         .to_string();
         let mut scanner = Scanner::new(&code);
         let expected = vec![
-            "'(' '(' '' '2'", 
-            "'/' '/' '' '2'", 
-            "'/' '/' '' '4'", 
+            "'(' '(' '' '2'",
+            "'/' '/' '' '2'",
+            "'/' '/' '' '4'",
             "'EOF' '' '' '5'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_strings() {
+        let code = "*
+            \"hello world\" \"hi\" \"\"
+             \"xx 
+x\""
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'*' '*' '' '1'",
+            "'STRING' '\"hello world\"' 'hello world' '2'",
+            "'STRING' '\"hi\"' 'hi' '2'",
+            "'STRING' '\"\"' '' '2'",
+            "'STRING' '\"xx \nx\"' 'xx \nx' '4'",
+            "'EOF' '' '' '4'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_numbers() {
+        let code = ";
+        1123.123 2. 2323 . 2323.2323
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "';' ';' '' '1'",
+            "'NUMBER' '1123.123' '1123.123' '2'",
+            "'NUMBER' '2' '2' '2'",
+            "'.' '.' '' '2'",
+            "'NUMBER' '2323' '2323' '2'",
+            "'.' '.' '' '2'",
+            "'NUMBER' '2323.2323' '2323.2323' '2'",
+            "'EOF' '' '' '3'",
         ];
         let actual = scanner.scan_tokens().ok().unwrap();
         compare_token_with_expected(&actual, &expected);

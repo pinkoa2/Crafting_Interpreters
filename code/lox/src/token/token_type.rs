@@ -76,10 +76,26 @@ impl fmt::Display for Token_Type {
             Token_Type::GREATER_EQUAL => write!(f, ">="),
             Token_Type::LESS => write!(f, "<"),
             Token_Type::LESS_EQUAL => write!(f, "<="),
+            Token_Type::IDENTIFIER => write!(f, "IDENTIFIER"),
             Token_Type::STRING => write!(f, "STRING"),
-            Token_Type::EOF => write!(f, "EOF"),
-            // TODO: add the remaining
-            _ => write!(f, "UNKNOWN"),
+            Token_Type::NUMBER => write!(f, "NUMBER"),
+            Token_Type::AND => write!(f, "AND"),
+            Token_Type::CLASS => write!(f, "CLASS"),
+            Token_Type::ELSE => write!(f, "ELSE"),
+            Token_Type::FALSE => write!(f, "FALSE"),
+            Token_Type::FUN => write!(f, "FUN"),
+            Token_Type::FOR => write!(f, "FOR"),
+            Token_Type::IF => write!(f, "IF"),
+            Token_Type::NIL => write!(f, "NIL"),
+            Token_Type::OR => write!(f, "OR"),
+            Token_Type::PRINT => write!(f, "PRINT"),
+            Token_Type::RETURN => write!(f, "RETURN"),
+            Token_Type::SUPER => write!(f, "SUPER"),
+            Token_Type::THIS => write!(f, "THIS"),
+            Token_Type::TRUE => write!(f, "TRUE"),
+            Token_Type::VAR => write!(f, "VAR"),
+            Token_Type::WHILE => write!(f, "WHILE"),
+            Token_Type::EOF => write!(f, "EOF")
         }
     }
 }
