@@ -2,6 +2,7 @@ use core::fmt;
 
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
+#[derive(PartialEq, Eq)]
 pub enum Token_Type {
     // Single-character tokens.
     LEFT_PAREN,
@@ -52,30 +53,6 @@ pub enum Token_Type {
     EOF,
 }
 
-#[allow(dead_code)]
-impl Token_Type {
-    pub fn identify_token(token: &char) -> Option<Token_Type> {
-        match token {
-            '(' => Some(Token_Type::LEFT_PAREN),
-            ')' => Some(Token_Type::RIGHT_PAREN),
-            '{' => Some(Token_Type::LEFT_BRACE),
-            '}' => Some(Token_Type::RIGHT_BRACE),
-            ',' => Some(Token_Type::COMMA),
-            '.' => Some(Token_Type::DOT),
-            '-' => Some(Token_Type::MINUS),
-            '+' => Some(Token_Type::PLUS),
-            ';' => Some(Token_Type::SEMICOLON),
-            '*' => Some(Token_Type::STAR),
-            '!' => Some(Token_Type::BANG),
-            '=' => Some(Token_Type::EQUAL),
-            '>' => Some(Token_Type::GREATER),
-            '<' => Some(Token_Type::LESS),
-            // TODO: add the remaining
-            _ => None,
-        }
-    }
-}
-
 impl fmt::Display for Token_Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -99,8 +76,26 @@ impl fmt::Display for Token_Type {
             Token_Type::GREATER_EQUAL => write!(f, ">="),
             Token_Type::LESS => write!(f, "<"),
             Token_Type::LESS_EQUAL => write!(f, "<="),
-            // TODO: add the remaining
-            _ => write!(f, "UNKNOWN"),
+            Token_Type::IDENTIFIER => write!(f, "IDENTIFIER"),
+            Token_Type::STRING => write!(f, "STRING"),
+            Token_Type::NUMBER => write!(f, "NUMBER"),
+            Token_Type::AND => write!(f, "AND"),
+            Token_Type::CLASS => write!(f, "CLASS"),
+            Token_Type::ELSE => write!(f, "ELSE"),
+            Token_Type::FALSE => write!(f, "FALSE"),
+            Token_Type::FUN => write!(f, "FUN"),
+            Token_Type::FOR => write!(f, "FOR"),
+            Token_Type::IF => write!(f, "IF"),
+            Token_Type::NIL => write!(f, "NIL"),
+            Token_Type::OR => write!(f, "OR"),
+            Token_Type::PRINT => write!(f, "PRINT"),
+            Token_Type::RETURN => write!(f, "RETURN"),
+            Token_Type::SUPER => write!(f, "SUPER"),
+            Token_Type::THIS => write!(f, "THIS"),
+            Token_Type::TRUE => write!(f, "TRUE"),
+            Token_Type::VAR => write!(f, "VAR"),
+            Token_Type::WHILE => write!(f, "WHILE"),
+            Token_Type::EOF => write!(f, "EOF")
         }
     }
 }

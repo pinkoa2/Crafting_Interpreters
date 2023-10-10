@@ -23,9 +23,9 @@ impl Scanner {
         }
     }
 
-    fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
         let mut tokens: Vec<Token> = Vec::new();
-        while self.is_at_end() {
+        while !self.is_at_end() {
             self.start = self.current;
             match self.scan_token() {
                 Some(token) => tokens.push(token),
@@ -90,7 +90,7 @@ impl Scanner {
                 None
             }
             // Strings
-            '"' => Some(self.string()),
+            '"' => self.string(),
             // Catch remainder
             misc => {
                 // Numbers
@@ -108,11 +108,14 @@ impl Scanner {
     }
 
     fn generate_token(&mut self, token_type: Token_Type, literal: Option<String>) -> Token {
+        if token_type == Token_Type::EOF {
+            return Token::new(token_type, "".to_string(), "".to_string(), self.line);
+        }
+
         let literal_ = match literal {
-            Some(lexem) => lexem,
+            Some(literal) => literal,
             None => "".to_string(),
         };
-
         let lexem: String = self.source[self.start..self.current].iter().collect();
         Token::new(token_type, lexem, literal_, self.line)
     }
@@ -146,7 +149,7 @@ impl Scanner {
         self.source.get(self.current + 1).unwrap_or(&'\0').clone()
     }
 
-    fn string(&mut self) -> Token {
+    fn string(&mut self) -> Option<Token> {
         while self.peek_next() != '"' && !self.is_at_end() {
             if self.peek_next() == '\n' {
                 self.line += 1;
@@ -155,7 +158,8 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            self.scanner_error("Missing closing \" on string token")
+            self.scanner_error("Missing closing \" on string token");
+            return None;
         }
 
         self.advance(); // last " is needed
@@ -164,7 +168,7 @@ impl Scanner {
             .iter()
             .collect();
 
-        return self.generate_token(Token_Type::STRING, Some(literal));
+        return Some(self.generate_token(Token_Type::STRING, Some(literal)));
     }
 
     fn number(&mut self) -> Token {
@@ -172,6 +176,7 @@ impl Scanner {
             self.advance();
         }
         if self.peek_next() == '.' && self.peek_double_next().is_digit(10) {
+            self.advance();
             while self.peek_next().is_digit(10) {
                 self.advance();
             }
@@ -216,5 +221,192 @@ impl Scanner {
     fn scanner_error(&mut self, message: &str) {
         Lox::error(self.line, message.to_string());
         self.an_error_occured = true;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Scanner;
+    use super::Token;
+
+    fn token_to_readable(token: &Token) -> String {
+        return token.test_string();
+    }
+
+    fn compare_token_with_expected(actual: &Vec<Token>, expected: &Vec<&str>) {
+        if actual.len() != expected.len() {
+            panic!("Expected and actual not the same length");
+        }
+        let mut index = 0;
+        while index < actual.len() {
+            assert_eq!(token_to_readable(&actual[index]), expected[index]);
+            index += 1;
+        }
+    }
+
+    #[test]
+    fn test_scanner_simple() {
+        let code = "(  ".to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec!["'(' '(' '' '1'", "'EOF' '' '' '1'"];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_single_char() {
+        let code = "
+            ( ) { } *
+            - + ,.
+            ;
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'(' '(' '' '2'",
+            "')' ')' '' '2'",
+            "'{' '{' '' '2'",
+            "'}' '}' '' '2'",
+            "'*' '*' '' '2'",
+            "'-' '-' '' '3'",
+            "'+' '+' '' '3'",
+            "',' ',' '' '3'",
+            "'.' '.' '' '3'",
+            "';' ';' '' '4'",
+            "'EOF' '' '' '5'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_double_char() {
+        let code = "
+            ( ! !=
+              == =
+              <= <
+              > >=
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'(' '(' '' '2'",
+            "'!' '!' '' '2'",
+            "'!=' '!=' '' '2'",
+            "'==' '==' '' '3'",
+            "'=' '=' '' '3'",
+            "'<=' '<=' '' '4'",
+            "'<' '<' '' '4'",
+            "'>' '>' '' '5'",
+            "'>=' '>=' '' '5'",
+            "'EOF' '' '' '6'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_comments() {
+        let code = "
+            ( / // All this should get ignored
+        // Also all of this
+        /
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'(' '(' '' '2'",
+            "'/' '/' '' '2'",
+            "'/' '/' '' '4'",
+            "'EOF' '' '' '5'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_strings() {
+        let code = "*
+            \"hello world\" \"hi\" \"\"
+             \"xx 
+x\""
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "'*' '*' '' '1'",
+            "'STRING' '\"hello world\"' 'hello world' '2'",
+            "'STRING' '\"hi\"' 'hi' '2'",
+            "'STRING' '\"\"' '' '2'",
+            "'STRING' '\"xx \nx\"' 'xx \nx' '4'",
+            "'EOF' '' '' '4'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_numbers() {
+        let code = ";
+        1123.123 2. 2323 . 2323.2323
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+            "';' ';' '' '1'",
+            "'NUMBER' '1123.123' '1123.123' '2'",
+            "'NUMBER' '2' '2' '2'",
+            "'.' '.' '' '2'",
+            "'NUMBER' '2323' '2323' '2'",
+            "'.' '.' '' '2'",
+            "'NUMBER' '2323.2323' '2323.2323' '2'",
+            "'EOF' '' '' '3'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+    }
+
+    #[test]
+    fn test_scanner_identifier_keywords() {
+        let code = "*
+            and andy class
+            else false fun for
+                if
+                    nil or orchid
+            print return super
+            superthis this true
+            var_ var while
+            hello_world
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+           "'*' '*' '' '1'",
+           "'AND' 'and' '' '2'",
+           "'IDENTIFIER' 'andy' '' '2'",
+           "'CLASS' 'class' '' '2'",
+           "'ELSE' 'else' '' '3'",
+           "'FALSE' 'false' '' '3'",
+           "'FUN' 'fun' '' '3'",
+           "'FOR' 'for' '' '3'",
+           "'IF' 'if' '' '4'",
+           "'NIL' 'nil' '' '5'",
+           "'OR' 'or' '' '5'",
+           "'IDENTIFIER' 'orchid' '' '5'",
+           "'PRINT' 'print' '' '6'",
+           "'RETURN' 'return' '' '6'",
+           "'SUPER' 'super' '' '6'",
+           "'IDENTIFIER' 'superthis' '' '7'",
+           "'THIS' 'this' '' '7'",
+           "'TRUE' 'true' '' '7'",
+           "'IDENTIFIER' 'var_' '' '8'",
+           "'VAR' 'var' '' '8'",
+           "'WHILE' 'while' '' '8'",
+           "'IDENTIFIER' 'hello_world' '' '9'",
+            "'EOF' '' '' '10'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+
     }
 }
