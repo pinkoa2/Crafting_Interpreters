@@ -365,4 +365,48 @@ x\""
         let actual = scanner.scan_tokens().ok().unwrap();
         compare_token_with_expected(&actual, &expected);
     }
+
+    #[test]
+    fn test_scanner_identifier_keywords() {
+        let code = "*
+            and andy class
+            else false fun for
+                if
+                    nil or orchid
+            print return super
+            superthis this true
+            var_ var while
+            hello_world
+        "
+        .to_string();
+        let mut scanner = Scanner::new(&code);
+        let expected = vec![
+           "'*' '*' '' '1'",
+           "'AND' 'and' '' '2'",
+           "'IDENTIFIER' 'andy' '' '2'",
+           "'CLASS' 'class' '' '2'",
+           "'ELSE' 'else' '' '3'",
+           "'FALSE' 'false' '' '3'",
+           "'FUN' 'fun' '' '3'",
+           "'FOR' 'for' '' '3'",
+           "'IF' 'if' '' '4'",
+           "'NIL' 'nil' '' '5'",
+           "'OR' 'or' '' '5'",
+           "'IDENTIFIER' 'orchid' '' '5'",
+           "'PRINT' 'print' '' '6'",
+           "'RETURN' 'return' '' '6'",
+           "'SUPER' 'super' '' '6'",
+           "'IDENTIFIER' 'superthis' '' '7'",
+           "'THIS' 'this' '' '7'",
+           "'TRUE' 'true' '' '7'",
+           "'IDENTIFIER' 'var_' '' '8'",
+           "'VAR' 'var' '' '8'",
+           "'WHILE' 'while' '' '8'",
+           "'IDENTIFIER' 'hello_world' '' '9'",
+            "'EOF' '' '' '10'",
+        ];
+        let actual = scanner.scan_tokens().ok().unwrap();
+        compare_token_with_expected(&actual, &expected);
+
+    }
 }
