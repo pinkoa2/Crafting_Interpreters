@@ -3,13 +3,13 @@ use crate::token::token::Token;
 
 #[allow(dead_code)]
 pub struct Binary<'a> {
-    left: &'a dyn Expression,
-    operator: Token,
-    right: &'a dyn Expression,
+    pub left: &'a dyn Expression,
+    pub operator: Token,
+    pub right: &'a dyn Expression,
 }
 
 impl<'a> Expression for Binary<'a> {
-    fn accept(&self, visitor: &dyn Visitor) {
+    fn accept(&self, visitor: &dyn Visitor) -> String {
         visitor.visit_binary(self)
     }
 

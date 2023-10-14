@@ -2,10 +2,10 @@ use super::token_type::Token_Type;
 
 #[allow(dead_code)]
 pub struct Token {
-    token_type: Token_Type,
-    lexem: String,
-    literal: String,
-    line: usize,
+    pub token_type: Token_Type,
+    pub lexem: String,
+    pub literal: String,
+    pub line: usize,
 }
 
 #[allow(dead_code)]
