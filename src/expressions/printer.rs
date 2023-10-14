@@ -120,4 +120,22 @@ mod tests {
         let grouping = Grouping::new(&unary);
         assert_eq!(PRINTER.convert(&grouping), "((- 5))");
     }
+
+    #[test]
+    fn test_printer_complex() {
+        // Example from book
+        let literal_unary = Literal::new("123".to_string());
+        let unary = Unary::new(
+            Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1),
+            &literal_unary,
+        );
+        let literal_grouping = Literal::new("45.67".to_string());
+        let grouping = Grouping::new(&literal_grouping);
+        let binary = Binary::new(
+            &unary,
+            Token::new(Token_Type::STAR, "*".to_string(), "".to_string(), 1),
+            &grouping,
+        );
+        assert_eq!(PRINTER.convert(&binary), "(* (- 123) (45.67))");
+    }
 }
