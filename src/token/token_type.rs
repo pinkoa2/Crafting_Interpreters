@@ -95,7 +95,7 @@ impl fmt::Display for Token_Type {
             Token_Type::TRUE => write!(f, "TRUE"),
             Token_Type::VAR => write!(f, "VAR"),
             Token_Type::WHILE => write!(f, "WHILE"),
-            Token_Type::EOF => write!(f, "EOF")
+            Token_Type::EOF => write!(f, "EOF"),
         }
     }
 }
