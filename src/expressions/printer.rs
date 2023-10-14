@@ -1,10 +1,11 @@
 use super::expression::Expression;
-use super::{binary::Binary, literal::Literal, unary::Unary};
+use super::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary};
 
 pub trait Visitor {
     fn visit_binary(&self, element: &Binary) -> String;
     fn visit_literal(&self, element: &Literal) -> String;
     fn visit_unary(&self, element: &Unary) -> String;
+    fn visit_grouping(&self, element: &Grouping) -> String;
 }
 
 pub struct Printer {}
@@ -24,6 +25,9 @@ impl Visitor for Printer {
         let right = element.right;
         self.parenthesis(&name, &vec![right])
     }
+    fn visit_grouping(&self, element: &Grouping) -> String {
+        self.parenthesis(&"".to_string(), &vec![element.exp])
+    }
 }
 
 #[allow(dead_code)]
@@ -35,7 +39,10 @@ impl Printer {
     fn parenthesis(&self, name: &String, expressions: &Vec<&dyn Expression>) -> String {
         let mut expression = format!("({}", name);
         for exp in expressions {
-            expression = expression + " " + exp.accept(self).trim();
+            if !name.is_empty() {
+                expression = expression + " ";
+            }
+            expression = expression + exp.accept(self).trim();
         }
         return expression + ")";
     }
@@ -45,6 +52,7 @@ impl Printer {
 mod tests {
     use super::Printer;
     const PRINTER: Printer = Printer {};
+    use crate::expressions::grouping::Grouping;
     use crate::expressions::unary::Unary;
     use crate::token::token_type::Token_Type;
     use crate::{
@@ -95,5 +103,21 @@ mod tests {
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
         let unary = Unary::new(operator, &inner_unary);
         assert_eq!(PRINTER.convert(&unary), "(- (- 10))");
+    }
+
+    #[test]
+    fn test_printer_grouping() {
+        let exp = Literal::new("700".to_string());
+        let grouping = Grouping::new(&exp);
+        assert_eq!(PRINTER.convert(&grouping), "(700)");
+    }
+
+    #[test]
+    fn test_printer_inner_grouping() {
+        let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
+        let right_literal = Literal::new("5".to_string());
+        let unary = Unary::new(operator, &right_literal);
+        let grouping = Grouping::new(&unary);
+        assert_eq!(PRINTER.convert(&grouping), "((- 5))");
     }
 }
