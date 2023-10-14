@@ -1,4 +1,4 @@
-use super::{expression::Expression, visitor::Visitor};
+use super::{expression::Expression, printer::Visitor};
 use crate::token::token::Token;
 
 #[allow(dead_code)]
@@ -12,7 +12,6 @@ impl<'a> Expression for Binary<'a> {
     fn accept(&self, visitor: &dyn Visitor) -> String {
         visitor.visit_binary(self)
     }
-
 }
 #[allow(dead_code)]
 impl<'a> Binary<'a> {

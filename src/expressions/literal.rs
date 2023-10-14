@@ -1,4 +1,4 @@
-use super::{expression::Expression, visitor::Visitor};
+use super::{expression::Expression, printer::Visitor};
 
 #[allow(dead_code)]
 pub struct Literal {
@@ -13,6 +13,6 @@ impl Expression for Literal {
 #[allow(dead_code)]
 impl Literal {
     pub fn new(value: String) -> Literal {
-        Literal {value}
+        Literal { value }
     }
 }
