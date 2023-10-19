@@ -1,6 +1,6 @@
-mod binary;
-mod expression;
-mod grouping;
-mod literal;
-mod printer;
-mod unary;
+pub mod binary;
+pub mod expression;
+pub mod grouping;
+pub mod literal;
+pub mod printer;
+pub mod unary;

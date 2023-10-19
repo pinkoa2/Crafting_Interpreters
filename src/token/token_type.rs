@@ -2,7 +2,7 @@ use core::fmt;
 
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum Token_Type {
     // Single-character tokens.
     LEFT_PAREN,

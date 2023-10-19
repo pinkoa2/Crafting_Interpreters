@@ -1,18 +1,18 @@
 use super::expression::Expression;
 
 #[allow(dead_code)]
-pub struct Grouping<'a> {
-    pub exp: &'a dyn Expression,
+pub struct Grouping {
+    pub exp: Box<dyn Expression>,
 }
 
-impl<'a> Expression for Grouping<'a> {
+impl Expression for Grouping {
     fn accept(&self, visitor: &dyn super::printer::Visitor) -> String {
         visitor.visit_grouping(self)
     }
 }
 #[allow(dead_code)]
-impl<'a> Grouping<'a> {
-    pub fn new(exp: &'a dyn Expression) -> Grouping<'a> {
+impl Grouping {
+    pub fn new(exp: Box<dyn Expression>) -> Grouping {
         Grouping { exp }
     }
 }

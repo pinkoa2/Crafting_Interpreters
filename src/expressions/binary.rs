@@ -2,20 +2,20 @@ use super::{expression::Expression, printer::Visitor};
 use crate::token::token::Token;
 
 #[allow(dead_code)]
-pub struct Binary<'a> {
-    pub left: &'a dyn Expression,
+pub struct Binary {
+    pub left: Box<dyn Expression>,
     pub operator: Token,
-    pub right: &'a dyn Expression,
+    pub right: Box<dyn Expression>,
 }
 
-impl<'a> Expression for Binary<'a> {
+impl Expression for Binary {
     fn accept(&self, visitor: &dyn Visitor) -> String {
         visitor.visit_binary(self)
     }
 }
 #[allow(dead_code)]
-impl<'a> Binary<'a> {
-    pub fn new(left: &'a dyn Expression, operator: Token, right: &'a dyn Expression) -> Binary<'a> {
+impl Binary {
+    pub fn new(left: Box<dyn Expression>, operator: Token, right: Box<dyn Expression>) -> Binary {
         Binary {
             left,
             operator,

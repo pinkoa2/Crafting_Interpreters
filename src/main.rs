@@ -1,6 +1,7 @@
 mod expressions;
 mod lox;
 mod scanner;
+mod parser;
 mod token;
 use lox::Lox;
 use std::env;
