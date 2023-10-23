@@ -80,7 +80,11 @@ mod tests {
         let inner_left_literal = Box::new(Literal::new("10".to_string()));
         let inner_right_literal = Box::new(Literal::new("20".to_string()));
         let inner_operator = Token::new(Token_Type::PLUS, "+".to_string(), "".to_string(), 1);
-        let inner_binary = Box::new(Binary::new(inner_left_literal, inner_operator, inner_right_literal));
+        let inner_binary = Box::new(Binary::new(
+            inner_left_literal,
+            inner_operator,
+            inner_right_literal,
+        ));
         let left_literal = Box::new(Literal::new("5".to_string()));
         let outer_operator = Token::new(Token_Type::STAR, "*".to_string(), "".to_string(), 1);
         let binary = Box::new(Binary::new(left_literal, outer_operator, inner_binary));
@@ -90,52 +94,52 @@ mod tests {
     #[test]
     fn test_printer_unary() {
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let right_literal = Literal::new("5".to_string());
-        let unary = Unary::new(operator, &right_literal);
-        assert_eq!(PRINTER.convert(&unary), "(- 5)");
+        let right_literal = Box::new(Literal::new("5".to_string()));
+        let unary = Box::new(Unary::new(operator, right_literal));
+        assert_eq!(PRINTER.convert(unary), "(- 5)");
     }
 
     #[test]
     fn test_printer_inner_unary() {
         let inner_operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let inner_right_literal = Literal::new("10".to_string());
-        let inner_unary = Unary::new(inner_operator, &inner_right_literal);
+        let inner_right_literal = Box::new(Literal::new("10".to_string()));
+        let inner_unary = Box::new(Unary::new(inner_operator, inner_right_literal));
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let unary = Unary::new(operator, &inner_unary);
-        assert_eq!(PRINTER.convert(&unary), "(- (- 10))");
+        let unary = Box::new(Unary::new(operator, inner_unary));
+        assert_eq!(PRINTER.convert(unary), "(- (- 10))");
     }
 
     #[test]
     fn test_printer_grouping() {
-        let exp = Literal::new("700".to_string());
-        let grouping = Grouping::new(&exp);
-        assert_eq!(PRINTER.convert(&grouping), "(700)");
+        let exp = Box::new(Literal::new("700".to_string()));
+        let grouping = Box::new(Grouping::new(exp));
+        assert_eq!(PRINTER.convert(grouping), "(700)");
     }
 
     #[test]
     fn test_printer_inner_grouping() {
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let right_literal = Literal::new("5".to_string());
-        let unary = Unary::new(operator, &right_literal);
-        let grouping = Grouping::new(&unary);
-        assert_eq!(PRINTER.convert(&grouping), "((- 5))");
+        let right_literal = Box::new(Literal::new("5".to_string()));
+        let unary = Box::new(Unary::new(operator, right_literal));
+        let grouping = Box::new(Grouping::new(unary));
+        assert_eq!(PRINTER.convert(grouping), "((- 5))");
     }
 
     #[test]
     fn test_printer_complex() {
         // Example from book
-        let literal_unary = Literal::new("123".to_string());
-        let unary = Unary::new(
+        let literal_unary = Box::new(Literal::new("123".to_string()));
+        let unary = Box::new(Unary::new(
             Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1),
-            &literal_unary,
-        );
-        let literal_grouping = Literal::new("45.67".to_string());
-        let grouping = Grouping::new(&literal_grouping);
-        let binary = Binary::new(
-            &unary,
+            literal_unary,
+        ));
+        let literal_grouping = Box::new(Literal::new("45.67".to_string()));
+        let grouping = Box::new(Grouping::new(literal_grouping));
+        let binary = Box::new(Binary::new(
+            unary,
             Token::new(Token_Type::STAR, "*".to_string(), "".to_string(), 1),
-            &grouping,
-        );
-        assert_eq!(PRINTER.convert(&binary), "(* (- 123) (45.67))");
+            grouping,
+        ));
+        assert_eq!(PRINTER.convert(binary), "(* (- 123) (45.67))");
     }
 }
