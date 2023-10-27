@@ -1,8 +1,18 @@
 use super::{expression::Expression, printer::Visitor};
+use std::any::Any;
+
+#[derive(PartialEq, Eq, Clone)]
+pub enum LiteralEnum {
+    NIL,
+    BOOLEAN,
+    NUMBER,
+    STRING,
+}
 
 #[allow(dead_code)]
 pub struct Literal {
-    pub value: String,
+    pub value: Box<dyn Any>,
+    pub literal_type: LiteralEnum,
 }
 
 impl Expression for Literal {
@@ -12,7 +22,10 @@ impl Expression for Literal {
 }
 #[allow(dead_code)]
 impl Literal {
-    pub fn new(value: String) -> Literal {
-        Literal { value }
+    pub fn new(value: Box<dyn Any>, literal_type: LiteralEnum) -> Literal {
+        Literal {
+            value,
+            literal_type,
+        }
     }
 }
