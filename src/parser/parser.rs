@@ -134,7 +134,7 @@ impl<'a> Parser<'a> {
         }
         if self.match_token(&vec![Token_Type::NUMBER]) {
             return Ok(Box::new(Literal::new(
-                Box::new(self.previous().literal.parse::<f64>()),
+                Box::new(self.previous().literal.parse::<f64>().expect("Failed to convert string to number")),
                 LiteralEnum::NUMBER,
             )));
         }

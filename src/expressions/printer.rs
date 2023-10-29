@@ -38,7 +38,7 @@ impl Visitor for Printer {
                 return match element.value.downcast_ref::<f64>() {
                     Some(literal_number) => literal_number.to_string(),
                     None => panic!("Literal 'Number' cannot be parsed"),
-                }
+                };
             }
         }
     }
