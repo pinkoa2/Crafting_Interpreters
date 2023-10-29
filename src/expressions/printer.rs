@@ -91,8 +91,8 @@ mod tests {
 
     #[test]
     fn test_printer_binary() {
-        let left_literal = Box::new(Literal::new(Box::new(10), LiteralEnum::NUMBER));
-        let right_literal = Box::new(Literal::new(Box::new(20), LiteralEnum::NUMBER));
+        let left_literal = Box::new(Literal::new(Box::new(10 as f64), LiteralEnum::NUMBER));
+        let right_literal = Box::new(Literal::new(Box::new(20 as f64), LiteralEnum::NUMBER));
         let operator = Token::new(Token_Type::PLUS, "+".to_string(), "".to_string(), 1);
         let binary = Box::new(Binary::new(left_literal, operator, right_literal));
         assert_eq!(PRINTER.convert(binary), "(+ 10 20)");
@@ -100,8 +100,8 @@ mod tests {
 
     #[test]
     fn test_printer_inner_binary() {
-        let inner_left_literal = Box::new(Literal::new(Box::new(10), LiteralEnum::NUMBER));
-        let inner_right_literal = Box::new(Literal::new(Box::new(20), LiteralEnum::NUMBER));
+        let inner_left_literal = Box::new(Literal::new(Box::new(10 as f64), LiteralEnum::NUMBER));
+        let inner_right_literal = Box::new(Literal::new(Box::new(20 as f64), LiteralEnum::NUMBER));
         let inner_operator = Token::new(Token_Type::PLUS, "+".to_string(), "".to_string(), 1);
         let inner_binary = Box::new(Binary::new(
             inner_left_literal,
@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn test_printer_unary() {
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let right_literal = Box::new(Literal::new(Box::new(5), LiteralEnum::NUMBER));
+        let right_literal = Box::new(Literal::new(Box::new(5 as f64), LiteralEnum::NUMBER));
         let unary = Box::new(Unary::new(operator, right_literal));
         assert_eq!(PRINTER.convert(unary), "(- 5)");
     }
@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_printer_inner_unary() {
         let inner_operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let inner_right_literal = Box::new(Literal::new(Box::new(10), LiteralEnum::NUMBER));
+        let inner_right_literal = Box::new(Literal::new(Box::new(10 as f64), LiteralEnum::NUMBER));
         let inner_unary = Box::new(Unary::new(inner_operator, inner_right_literal));
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
         let unary = Box::new(Unary::new(operator, inner_unary));
@@ -134,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_printer_grouping() {
-        let exp = Box::new(Literal::new(Box::new(700), LiteralEnum::NUMBER));
+        let exp = Box::new(Literal::new(Box::new(700 as f64), LiteralEnum::NUMBER));
         let grouping = Box::new(Grouping::new(exp));
         assert_eq!(PRINTER.convert(grouping), "(700)");
     }
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn test_printer_inner_grouping() {
         let operator = Token::new(Token_Type::MINUS, "-".to_string(), "".to_string(), 1);
-        let right_literal = Box::new(Literal::new(Box::new(5), LiteralEnum::NUMBER));
+        let right_literal = Box::new(Literal::new(Box::new(5 as f64), LiteralEnum::NUMBER));
         let unary = Box::new(Unary::new(operator, right_literal));
         let grouping = Box::new(Grouping::new(unary));
         assert_eq!(PRINTER.convert(grouping), "((- 5))");
