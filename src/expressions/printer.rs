@@ -27,7 +27,7 @@ impl Visitor for Printer {
                     Some(literal_string) => literal_string.to_string(),
                     None => panic!("Literal 'Boolean' cannot be parsed"),
                 }
-            },
+            }
             LiteralEnum::STRING => {
                 return match element.value.downcast_ref::<String>() {
                     Some(literal_string) => literal_string.to_string(),

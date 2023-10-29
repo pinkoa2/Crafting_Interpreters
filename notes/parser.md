@@ -39,7 +39,6 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")" ;
 
 
-
 Terminal	    Code to match and consume a token
 Nonterminal	  Call to that rule’s function
 |	            if or switch statement

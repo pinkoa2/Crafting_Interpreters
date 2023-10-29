@@ -1,9 +1,9 @@
-#[allow(unused_imports)]
 use crate::expressions::binary::Binary;
 use crate::expressions::expression::Expression;
+use crate::expressions::grouping::Grouping;
 use crate::expressions::literal::{Literal, LiteralEnum};
-#[allow(unused_imports)]
 use crate::expressions::unary::Unary;
+use crate::lox::Lox;
 use crate::token::token::Token;
 use crate::token::token_type::Token_Type;
 
@@ -19,22 +19,35 @@ impl<'a> Parser<'a> {
         Parser { tokens, current: 0 }
     }
 
+    pub fn parse(&mut self) -> Result<Box<dyn Expression>, String> {
+        self.expression()
+    }
+
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-    fn expression(&mut self) -> Box<dyn Expression> {
-        let mut expr: Box<dyn Expression> = self.comparison();
+    fn expression(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expr: Box<dyn Expression> = match self.comparison() {
+            Ok(expr) => expr,
+            Err(m) => return Err(m),
+        };
 
         let expression_vector = vec![Token_Type::BANG_EQUAL, Token_Type::EQUAL_EQUAL];
         while self.match_token(&expression_vector) {
             let operator = self.previous().clone();
-            let right = self.comparison();
+            let right = match self.comparison() {
+                Ok(expr) => expr,
+                Err(m) => return Err(m),
+            };
             expr = Box::new(Binary::new(expr, operator, right));
         }
-        expr
+        Ok(expr)
     }
 
     // comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    fn comparison(&mut self) -> Box<dyn Expression> {
-        let mut expr: Box<dyn Expression> = self.term();
+    fn comparison(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expr: Box<dyn Expression> = match self.term() {
+            Ok(expr) => expr,
+            Err(m) => return Err(m),
+        };
 
         let comparison_vector = vec![
             Token_Type::GREATER,
@@ -44,68 +57,108 @@ impl<'a> Parser<'a> {
         ];
         while self.match_token(&comparison_vector) {
             let operator = self.previous().clone();
-            let right = self.term();
+            let right = match self.term() {
+                Ok(expr) => expr,
+                Err(m) => return Err(m),
+            };
             expr = Box::new(Binary::new(expr, operator, right))
         }
-        expr
+        Ok(expr)
     }
 
     // term           → factor ( ( "-" | "+" ) factor )* ;
-    fn term(&mut self) -> Box<dyn Expression> {
-        let mut expr: Box<dyn Expression> = self.factor();
+    fn term(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expr: Box<dyn Expression> = match self.factor() {
+            Ok(expr) => expr,
+            Err(m) => return Err(m),
+        };
 
         let term_vector = vec![Token_Type::MINUS, Token_Type::PLUS];
         while self.match_token(&term_vector) {
             let operator = self.previous().clone();
-            let right = self.factor();
+            let right = match self.factor() {
+                Ok(expr) => expr,
+                Err(m) => return Err(m),
+            };
             expr = Box::new(Binary::new(expr, operator, right))
         }
-        expr
+        Ok(expr)
     }
 
     // factor         → unary ( ( "/" | "*" ) unary )* ;
-    fn factor(&mut self) -> Box<dyn Expression> {
-        let mut expr = self.unary();
+    fn factor(&mut self) -> Result<Box<dyn Expression>, String> {
+        let mut expr: Box<dyn Expression> = match self.unary() {
+            Ok(expr) => expr,
+            Err(m) => return Err(m),
+        };
 
         let factor_vector = vec![Token_Type::SLASH, Token_Type::STAR];
         while self.match_token(&factor_vector) {
             let operator = self.previous().clone();
-            let right = self.unary();
+            let right = match self.unary() {
+                Ok(right) => right,
+                Err(message) => return Err(message),
+            };
             expr = Box::new(Binary::new(expr, operator, right));
         }
-        expr
+        Ok(expr)
     }
 
     // unary          → ( "!" | "-" ) unary | primary
-    fn unary(&mut self) -> Box<dyn Expression> {
+    fn unary(&mut self) -> Result<Box<dyn Expression>, String> {
         let unary_vector = vec![Token_Type::BANG, Token_Type::MINUS];
         if self.match_token(&unary_vector) {
             let operator = self.previous().clone();
-            let right = self.unary();
-            return Box::new(Unary::new(operator, right));
+            let right = match self.unary() {
+                Ok(right) => right,
+                Err(message) => return Err(message),
+            };
+            return Ok(Box::new(Unary::new(operator, right)));
         }
         self.primary()
     }
 
     // → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
-    fn primary(&mut self) -> Box<dyn Expression> {
+    fn primary(&mut self) -> Result<Box<dyn Expression>, String> {
         if self.match_token(&vec![Token_Type::TRUE]) {
-            return Box::new(Literal::new(Box::new(true), LiteralEnum::BOOLEAN));
+            return Ok(Box::new(Literal::new(Box::new(true), LiteralEnum::BOOLEAN)));
         }
         if self.match_token(&vec![Token_Type::FALSE]) {
-            return Box::new(Literal::new(Box::new(false), LiteralEnum::BOOLEAN));
+            return Ok(Box::new(Literal::new(
+                Box::new(false),
+                LiteralEnum::BOOLEAN,
+            )));
         }
         if self.match_token(&vec![Token_Type::NIL]) {
-            return Box::new(Literal::new(Box::new(0), LiteralEnum::NIL));
+            return Ok(Box::new(Literal::new(Box::new(0), LiteralEnum::NIL)));
         }
         if self.match_token(&vec![Token_Type::NUMBER]) {
-            return Box::new(Literal::new(Box::new(self.previous().literal.parse::<f64>()), LiteralEnum::NUMBER));
+            return Ok(Box::new(Literal::new(
+                Box::new(self.previous().literal.parse::<f64>()),
+                LiteralEnum::NUMBER,
+            )));
         }
         if self.match_token(&vec![Token_Type::STRING]) {
-            return Box::new(Literal::new(Box::new(self.previous().literal.clone()), LiteralEnum::STRING));
+            return Ok(Box::new(Literal::new(
+                Box::new(self.previous().literal.clone()),
+                LiteralEnum::STRING,
+            )));
         }
 
-        panic!("Not Implemented")
+        // "(" expression ")"
+        if self.match_token(&vec![Token_Type::LEFT_PAREN]) {
+            let expr = match self.expression() {
+                Ok(expr) => expr,
+                Err(m) => return Err(m),
+            };
+            match self.consume(&Token_Type::RIGHT_PAREN, "Expect ')' after expression") {
+                Ok(_) => {}
+                Err(err) => return Err(err),
+            };
+            return Ok(Box::new(Grouping::new(expr)));
+        }
+
+        Err(self.parser_error(self.peek(), "Expected Expression"))
     }
 
     fn match_token(&mut self, token_types: &Vec<Token_Type>) -> bool {
@@ -145,4 +198,39 @@ impl<'a> Parser<'a> {
     fn previous(&self) -> &Token {
         return self.tokens.get(self.current - 1).unwrap();
     }
+
+    fn consume(&mut self, expected: &Token_Type, error_message: &str) -> Result<&Token, String> {
+        if self.check(expected) {
+            return Ok(self.advance());
+        }
+        Err(self.parser_error(self.peek(), error_message))
+    }
+
+    fn parser_error(&self, token: &Token, message: &str) -> String {
+        Lox::error_token(token, message);
+        "A parsing error has occured".to_string()
+    }
+
+    // From chapter 3, not set up currently
+    // private void synchronize() {
+    //   advance();
+    //
+    //   while (!isAtEnd()) {
+    //     if (previous().type == SEMICOLON) return;
+    //
+    //     switch (peek().type) {
+    //       case CLASS:
+    //       case FUN:
+    //       case VAR:
+    //       case FOR:
+    //       case IF:
+    //       case WHILE:
+    //       case PRINT:
+    //       case RETURN:
+    //         return;
+    //     }
+    //
+    //     advance();
+    //   }
+    // }
 }
