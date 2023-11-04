@@ -22,7 +22,6 @@ impl Clone for Literal {
             LiteralEnum::BOOLEAN => Box::new(self.value.downcast_ref::<bool>().unwrap().clone()),
             LiteralEnum::NUMBER => Box::new(self.value.downcast_ref::<f64>().unwrap().clone()),
             LiteralEnum::STRING => Box::new(self.value.downcast_ref::<String>().unwrap().clone()),
-            _ => panic!("Failed to clone Literal"),
         };
         Literal {
             value,

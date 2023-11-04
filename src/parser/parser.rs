@@ -163,7 +163,7 @@ impl<'a> Parser<'a> {
             return Ok(Box::new(Grouping::new(expr)));
         }
 
-        Err(self.parser_error(self.peek(), "Expected Expression"))
+        Err(self.parser_error(self.peek(), "Expected expression"))
     }
 
     fn match_token(&mut self, token_types: &Vec<Token_Type>) -> bool {
@@ -213,7 +213,7 @@ impl<'a> Parser<'a> {
 
     fn parser_error(&self, token: &Token, message: &str) -> String {
         Lox::error_token(token, message);
-        "A parsing error has occured".to_string()
+        message.to_string()
     }
 
     // From chapter 3, not set up currently
@@ -307,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_all_error_parser() {
-        compare_code_to_err("( 4", "A parsing error has occured");
-        compare_code_to_err("", "A parsing error has occured");
+        compare_code_to_err("( 4", "Expect ')' after expression");
+        compare_code_to_err("", "Expected expression");
     }
 }

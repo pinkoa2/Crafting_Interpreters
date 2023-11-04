@@ -12,6 +12,10 @@ impl Visitor<Result<Literal, String>> for Interpreter {
         Ok(element.clone())
     }
 
+    fn visit_grouping(&self, element: &crate::expressions::grouping::Grouping) -> Result<Literal, String> {
+        self.evaluate(&element.exp)
+    }
+
     fn visit_unary(&self, element: &crate::expressions::unary::Unary) -> Result<Literal, String> {
         let operator: &Token_Type = &element.operator.token_type;
         let right = &element.right;
@@ -22,10 +26,6 @@ impl Visitor<Result<Literal, String>> for Interpreter {
 
         match operator {
             Token_Type::BANG => {
-                // Check that it's a boolean
-                // if expression.literal_type != LiteralEnum::BOOLEAN || expression.literal_type != LiteralEnum::NIL{
-                //     return Err(self.runtime_error(&element.operator, "Operand must be a boolean or nil."))
-                // }
                 let new_operand = !self.is_truthy(&expression);
                 return Ok(Literal::new(Box::new(new_operand), LiteralEnum::BOOLEAN));
             }
@@ -45,9 +45,6 @@ impl Visitor<Result<Literal, String>> for Interpreter {
         panic!()
     }
 
-    fn visit_grouping(&self, element: &crate::expressions::grouping::Grouping) -> Result<Literal, String> {
-        panic!()
-    }
 }
 
 impl Interpreter {
@@ -57,7 +54,7 @@ impl Interpreter {
 
     fn runtime_error(&self, token: &Token, message: &str) -> String {
         Lox::error_token(token, message);
-        "".to_string()
+        message.to_string()
     }
 
     fn is_truthy(&self, literal: &Literal) -> bool {
