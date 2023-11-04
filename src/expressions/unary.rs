@@ -1,21 +1,24 @@
-use super::{expression::Expression, printer::Visitor};
+use super::{expression::Expression, visitor::Visitor, literal::Literal};
 use crate::token::token::Token;
 
 #[allow(dead_code)]
-pub struct Unary<'a> {
+pub struct Unary {
     pub operator: Token,
-    pub right: &'a dyn Expression,
+    pub right: Box<dyn Expression>,
 }
 
-impl<'a> Expression for Unary<'a> {
-    fn accept(&self, visitor: &dyn Visitor) -> String {
+impl<'a> Expression for Unary {
+    fn accept_printer(&self, visitor: &dyn Visitor<String>) -> String {
+        visitor.visit_unary(self)
+    }
+    fn accept_interpreter(&self, visitor: &dyn Visitor<Result<Literal, String>>) -> Result<Literal, String> {
         visitor.visit_unary(self)
     }
 }
 
 #[allow(dead_code)]
-impl<'a> Unary<'a> {
-    pub fn new(operator: Token, right: &'a dyn Expression) -> Unary<'a> {
+impl Unary {
+    pub fn new(operator: Token, right: Box<dyn Expression>) -> Unary {
         Unary { operator, right }
     }
 }

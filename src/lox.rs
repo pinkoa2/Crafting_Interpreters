@@ -3,6 +3,13 @@ use std::io;
 use std::io::Write;
 use std::process;
 
+use crate::expressions::expression::Expression;
+use crate::expressions::printer::Printer;
+use crate::parser::parser::Parser;
+use crate::scanner::scanner::Scanner;
+use crate::token::token::Token;
+use crate::token::token_type::Token_Type;
+
 pub struct Lox {}
 
 #[allow(dead_code)]
@@ -45,15 +52,40 @@ impl Lox {
     }
 
     fn run(&mut self, input: &String) -> Result<String, String> {
-        println!("{}", input.trim());
-        Ok("Not yet connected".to_string())
+        let mut scanner = Scanner::new(input);
+        let tokens: Vec<Token> = match scanner.scan_tokens() {
+            Ok(tokens) => tokens,
+            Err(tokens) => {
+                println!("Ran into some scanner issues, continuing");
+                tokens
+            }
+        };
+
+        let mut parser = Parser::new(&tokens);
+        let expr: Box<dyn Expression> = match parser.parse() {
+            Ok(expr) => expr,
+            Err(m) => return Err(m.to_string()),
+        };
+
+        let printer = Printer {};
+        let string: String = printer.convert(expr);
+        println!("{}", string);
+        Ok(string)
     }
 
-    pub fn error(line: usize, message: String) {
-        Lox::report(line, String::from(""), message);
+    pub fn error(line: usize, message: &str) {
+        Lox::report(line, "", message);
     }
 
-    fn report(line: usize, context: String, message: String) {
+    pub fn error_token(token: &Token, message: &str) {
+        if token.token_type == Token_Type::EOF {
+            Lox::report(token.line, " at end", message);
+            return;
+        }
+        Lox::report(token.line, &format!(" at '{}'", token.lexem), message);
+    }
+
+    fn report(line: usize, context: &str, message: &str) {
         println!("[line {}] Error {} {}", line, context, message);
     }
 }

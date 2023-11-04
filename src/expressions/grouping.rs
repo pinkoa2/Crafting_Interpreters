@@ -1,18 +1,21 @@
-use super::expression::Expression;
+use super::{expression::Expression, visitor::Visitor, literal::Literal};
 
 #[allow(dead_code)]
-pub struct Grouping<'a> {
-    pub exp: &'a dyn Expression,
+pub struct Grouping {
+    pub exp: Box<dyn Expression>,
 }
 
-impl<'a> Expression for Grouping<'a> {
-    fn accept(&self, visitor: &dyn super::printer::Visitor) -> String {
+impl Expression for Grouping {
+    fn accept_printer(&self, visitor: &dyn super::visitor::Visitor<String>) -> String {
+        visitor.visit_grouping(self)
+    }
+    fn accept_interpreter(&self, visitor: &dyn Visitor<Result<Literal, String>>) -> Result<Literal, String> {
         visitor.visit_grouping(self)
     }
 }
 #[allow(dead_code)]
-impl<'a> Grouping<'a> {
-    pub fn new(exp: &'a dyn Expression) -> Grouping<'a> {
+impl Grouping {
+    pub fn new(exp: Box<dyn Expression>) -> Grouping {
         Grouping { exp }
     }
 }

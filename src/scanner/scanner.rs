@@ -3,7 +3,7 @@ use crate::lox::Lox;
 use super::super::token::token::Token;
 use super::super::token::token_type::Token_Type;
 
-struct Scanner {
+pub struct Scanner {
     source: Vec<char>,
     start: usize,
     current: usize,
@@ -11,7 +11,6 @@ struct Scanner {
     an_error_occured: bool,
 }
 
-#[allow(dead_code)]
 impl Scanner {
     pub fn new(source: &String) -> Scanner {
         Scanner {
@@ -23,7 +22,7 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, String> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<Token>> {
         let mut tokens: Vec<Token> = Vec::new();
         while !self.is_at_end() {
             self.start = self.current;
@@ -34,7 +33,7 @@ impl Scanner {
         }
         tokens.push(self.generate_token(Token_Type::EOF, None));
         if self.an_error_occured {
-            return Err("Some error occured while parsing".to_string());
+            return Err(tokens);
         }
         Ok(tokens)
     }
@@ -219,7 +218,7 @@ impl Scanner {
     }
 
     fn scanner_error(&mut self, message: &str) {
-        Lox::error(self.line, message.to_string());
+        Lox::error(self.line, message);
         self.an_error_occured = true;
     }
 }
