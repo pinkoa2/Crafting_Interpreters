@@ -1,4 +1,4 @@
-use super::{expression::Expression, printer::Visitor};
+use super::{expression::Expression, visitor::Visitor, literal::Literal};
 use crate::token::token::Token;
 
 #[allow(dead_code)]
@@ -9,7 +9,10 @@ pub struct Binary {
 }
 
 impl Expression for Binary {
-    fn accept(&self, visitor: &dyn Visitor) -> String {
+    fn accept_printer(&self, visitor: &dyn Visitor<String>) -> String {
+        visitor.visit_binary(self)
+    }
+    fn accept_interpreter(&self, visitor: &dyn Visitor<Result<Literal, String>>) -> Result<Literal, String> {
         visitor.visit_binary(self)
     }
 }

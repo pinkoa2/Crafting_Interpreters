@@ -134,7 +134,12 @@ impl<'a> Parser<'a> {
         }
         if self.match_token(&vec![Token_Type::NUMBER]) {
             return Ok(Box::new(Literal::new(
-                Box::new(self.previous().literal.parse::<f64>().expect("Failed to convert string to number")),
+                Box::new(
+                    self.previous()
+                        .literal
+                        .parse::<f64>()
+                        .expect("Failed to convert string to number"),
+                ),
                 LiteralEnum::NUMBER,
             )));
         }
@@ -233,4 +238,76 @@ impl<'a> Parser<'a> {
     //     advance();
     //   }
     // }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Parser;
+    use crate::{expressions::printer::Printer, scanner::scanner::Scanner};
+
+    fn compare_code_to_expression(code: &str, expected: &str) {
+        let mut scanner = Scanner::new(&code.to_string());
+        let tokens = scanner.scan_tokens().ok().unwrap();
+        let mut parser = Parser::new(&tokens);
+        let printer = Printer {};
+        assert_eq!(printer.convert(parser.parse().ok().unwrap()), expected);
+    }
+
+    fn compare_code_to_err(code: &str, expected: &str) {
+        let mut scanner = Scanner::new(&code.to_string());
+        let tokens = scanner.scan_tokens().ok().unwrap();
+        let mut parser = Parser::new(&tokens);
+        assert_eq!(parser.parse().err().unwrap(), expected);
+    }
+
+    #[test]
+    fn test_all_success_parser() {
+        // Expression
+        compare_code_to_expression(
+            "true != ( (3-4*3+2) <= 6.23 )",
+            "(!= true ((<= ((+ (- 3 (* 4 3)) 2)) 6.23)))",
+        );
+
+        // Equality
+        compare_code_to_expression("4 == 3", "(== 4 3)");
+        compare_code_to_expression("4 != 3", "(!= 4 3)");
+
+        // Comparison
+        compare_code_to_expression("4 < 3", "(< 4 3)");
+        compare_code_to_expression("4 > 3", "(> 4 3)");
+        compare_code_to_expression("4 >= 3", "(>= 4 3)");
+        compare_code_to_expression("4 <= 3", "(<= 4 3)");
+        compare_code_to_expression("4 <= 3 < 5", "(< (<= 4 3) 5)");
+        compare_code_to_expression("4 <= (3 < 5)", "(<= 4 ((< 3 5)))");
+
+        // Term
+        compare_code_to_expression("5 + 5", "(+ 5 5)");
+        compare_code_to_expression("5.1 - 5", "(- 5.1 5)");
+        compare_code_to_expression("5 + 5 - 4 + 2 - 1", "(- (+ (- (+ 5 5) 4) 2) 1)");
+
+        //Factor
+        compare_code_to_expression("4 * 3", "(* 4 3)");
+        compare_code_to_expression("4 * 3 * 2", "(* (* 4 3) 2)");
+        compare_code_to_expression("4 / 3", "(/ 4 3)");
+        compare_code_to_expression("4 / 3 * 2", "(* (/ 4 3) 2)");
+
+        // Unary
+        compare_code_to_expression("-4 * 3", "(* (- 4) 3)");
+        compare_code_to_expression("! true", "(! true)");
+        compare_code_to_expression("! false", "(! false)");
+
+        // Primary
+        compare_code_to_expression("\"Hello World\"", "Hello World");
+        compare_code_to_expression("36434.23232", "36434.23232");
+        compare_code_to_expression("true", "true");
+        compare_code_to_expression("false", "false");
+        compare_code_to_expression("nil", "nil");
+        compare_code_to_expression("( nil )", "(nil)");
+    }
+
+    #[test]
+    fn test_all_error_parser() {
+        compare_code_to_err("( 4", "A parsing error has occured");
+        compare_code_to_err("", "A parsing error has occured");
+    }
 }

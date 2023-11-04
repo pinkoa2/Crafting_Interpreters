@@ -64,7 +64,7 @@ impl Lox {
         let mut parser = Parser::new(&tokens);
         let expr: Box<dyn Expression> = match parser.parse() {
             Ok(expr) => expr,
-            Err(m) => return Err(m.to_string())
+            Err(m) => return Err(m.to_string()),
         };
 
         let printer = Printer {};

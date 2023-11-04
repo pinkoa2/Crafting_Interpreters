@@ -1,4 +1,4 @@
-use super::expression::Expression;
+use super::{expression::Expression, visitor::Visitor, literal::Literal};
 
 #[allow(dead_code)]
 pub struct Grouping {
@@ -6,7 +6,10 @@ pub struct Grouping {
 }
 
 impl Expression for Grouping {
-    fn accept(&self, visitor: &dyn super::printer::Visitor) -> String {
+    fn accept_printer(&self, visitor: &dyn super::visitor::Visitor<String>) -> String {
+        visitor.visit_grouping(self)
+    }
+    fn accept_interpreter(&self, visitor: &dyn Visitor<Result<Literal, String>>) -> Result<Literal, String> {
         visitor.visit_grouping(self)
     }
 }

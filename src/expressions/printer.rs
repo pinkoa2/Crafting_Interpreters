@@ -1,17 +1,11 @@
 use super::expression::Expression;
+use super::grouping::Grouping;
 use super::literal::LiteralEnum;
-use super::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary};
-
-pub trait Visitor {
-    fn visit_binary(&self, element: &Binary) -> String;
-    fn visit_literal(&self, element: &Literal) -> String;
-    fn visit_unary(&self, element: &Unary) -> String;
-    fn visit_grouping(&self, element: &Grouping) -> String;
-}
+use super::visitor::Visitor;
 
 pub struct Printer {}
 
-impl Visitor for Printer {
+impl Visitor<String> for Printer {
     fn visit_binary(&self, element: &super::binary::Binary) -> String {
         let name = element.operator.lexem.clone();
         let left = &element.left;
@@ -55,7 +49,7 @@ impl Visitor for Printer {
 #[allow(dead_code)]
 impl Printer {
     pub fn convert(&self, exp: Box<dyn Expression>) -> String {
-        return exp.accept(self);
+        return exp.accept_printer(self);
     }
 
     fn parenthesis(&self, name: &String, expressions: &Vec<&Box<dyn Expression>>) -> String {
@@ -64,7 +58,7 @@ impl Printer {
             if !name.is_empty() {
                 expression = expression + " ";
             }
-            expression = expression + exp.accept(self).trim();
+            expression = expression + exp.accept_printer(self).trim();
         }
         return expression + ")";
     }
