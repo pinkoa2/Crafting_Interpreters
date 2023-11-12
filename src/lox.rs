@@ -5,6 +5,7 @@ use std::process;
 
 use crate::expressions::expression::Expression;
 use crate::expressions::printer::Printer;
+use crate::interpreter::interpreter::Interpreter;
 use crate::parser::parser::Parser;
 use crate::scanner::scanner::Scanner;
 use crate::token::token::Token;
@@ -64,11 +65,17 @@ impl Lox {
         let mut parser = Parser::new(&tokens);
         let expr: Box<dyn Expression> = match parser.parse() {
             Ok(expr) => expr,
-            Err(m) => return Err(m.to_string()),
+            Err(m) => return Err(m),
+        };
+
+        let interpreter = Interpreter {};
+        let result = match interpreter.evaluate(&expr) {
+            Ok(literal) => literal,
+            Err(m) => return Err(m),
         };
 
         let printer = Printer {};
-        let string: String = printer.convert(expr);
+        let string: String = printer.convert(Box::new(result));
         println!("{}", string);
         Ok(string)
     }
